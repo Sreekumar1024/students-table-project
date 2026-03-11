@@ -1,0 +1,227 @@
+students-backend
+│
+├── package.json
+├── tsconfig.json
+├── nest-cli.json
+│
+└── src
+    │
+    ├── main.ts
+    ├── app.module.ts
+    │
+    └── students
+        │
+        ├── students.controller.ts
+        ├── students.service.ts
+        ├── students.module.ts
+        ├── student.entity.ts
+        ├── create-student.dto.ts
+        └── update-student.dto.ts
+{
+  "name": "students-backend",
+  "version": "1.0.0",
+  "description": "Students CRUD Backend using NestJS and PostgreSQL",
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "nest start --watch"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/typeorm": "^10.0.0",
+    "pg": "^8.11.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0",
+    "typeorm": "^0.3.17"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "strict": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src"
+}
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+
+  const app = await NestFactory.create(AppModule);
+
+  app.enableCors();
+
+  await app.listen(3000);
+
+  console.log("Server running on http://localhost:3000");
+}
+
+bootstrap();
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { StudentsModule } from './students/students.module';
+import { Student } from './students/student.entity';
+
+@Module({
+  imports: [
+
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'postgres',
+      database: 'studentsdb',
+      entities: [Student],
+      synchronize: true,
+    }),
+
+    StudentsModule,
+  ],
+})
+export class AppModule {}
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { StudentsModule } from './students/students.module';
+import { Student } from './students/student.entity';
+
+@Module({
+  imports: [
+
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'postgres',
+      database: 'studentsdb',
+      entities: [Student],
+      synchronize: true,
+    }),
+
+    StudentsModule,
+  ],
+})
+export class AppModule {}
+export class CreateStudentDto {
+
+  name: string;
+  email: string;
+  age: number;
+
+}
+export class CreateStudentDto {
+
+  name: string;
+  email: string;
+  age: number;
+
+}
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Student } from "./student.entity";
+
+@Injectable()
+export class StudentsService {
+
+  constructor(
+    @InjectRepository(Student)
+    private studentRepo: Repository<Student>
+  ) {}
+
+  create(student) {
+    return this.studentRepo.save(student);
+  }
+
+  findAll() {
+    return this.studentRepo.find();
+  }
+
+  findOne(id: number) {
+    return this.studentRepo.findOneBy({ id });
+  }
+
+  update(id: number, data) {
+    return this.studentRepo.update(id, data);
+  }
+
+  remove(id: number) {
+    return this.studentRepo.delete(id);
+  }
+}
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Student } from "./student.entity";
+
+@Injectable()
+export class StudentsService {
+
+  constructor(
+    @InjectRepository(Student)
+    private studentRepo: Repository<Student>
+  ) {}
+
+  create(student) {
+    return this.studentRepo.save(student);
+  }
+
+  findAll() {
+    return this.studentRepo.find();
+  }
+
+  findOne(id: number) {
+    return this.studentRepo.findOneBy({ id });
+  }
+
+  update(id: number, data) {
+    return this.studentRepo.update(id, data);
+  }
+
+  remove(id: number) {
+    return this.studentRepo.delete(id);
+  }
+}
+npm install
+npm run start:dev
+http://localhost:3000/students
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
