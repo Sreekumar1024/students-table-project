@@ -1,0 +1,225 @@
+import { useState, useEffect } from "react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+
+function App() {
+
+  const [students, setStudents] = useState(() => {
+    const saved = localStorage.getItem("students");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    age: ""
+  });
+
+  const [editingId, setEditingId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 1000);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("students", JSON.stringify(students));
+  }, [students]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const addStudent = () => {
+
+    if (!form.name || !form.email || !form.age) {
+      alert("All fields are required");
+      return;
+    }
+
+    const emailRegex = /\S+@\S+\.\S+/;
+
+    if (!emailRegex.test(form.email)) {
+      alert("Enter valid email");
+      return;
+    }
+
+    if (editingId) {
+
+      setStudents(
+        students.map((s) =>
+          s.id === editingId ? { ...form, id: editingId } : s
+        )
+      );
+
+      setEditingId(null);
+
+    } else {
+
+      const newStudent = {
+        id: Date.now(),
+        ...form
+      };
+
+      setStudents([...students, newStudent]);
+    }
+
+    setForm({ name: "", email: "", age: "" });
+  };
+
+  const editStudent = (student) => {
+    setForm(student);
+    setEditingId(student.id);
+  };
+
+  const deleteStudent = (id) => {
+
+    if (window.confirm("Delete this student?")) {
+      setStudents(students.filter((s) => s.id !== id));
+    }
+  };
+
+  const filteredStudents = students.filter(
+    (s) =>
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      s.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const downloadExcel = () => {
+
+    const worksheet = XLSX.utils.json_to_sheet(students);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array"
+    });
+
+    const data = new Blob([excelBuffer], {
+      type: "application/octet-stream"
+    });
+
+    saveAs(data, "students.xlsx");
+  };
+
+  if (loading) {
+
+    return (
+      <div className="text-center mt-5">
+        <div className="spinner-border text-primary"></div>
+        <p>Loading Students...</p>
+      </div>
+    );
+  }
+
+  return (
+
+    <div className="container mt-5">
+
+      <h2 className="text-center mb-4">Students Table</h2>
+
+      <div className="card p-3 mb-4">
+
+        <input
+          className="form-control mb-2"
+          placeholder="Name"
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+        />
+
+        <input
+          className="form-control mb-2"
+          placeholder="Email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+        />
+
+        <input
+          className="form-control mb-3"
+          placeholder="Age"
+          name="age"
+          value={form.age}
+          onChange={handleChange}
+        />
+
+        <button className="btn btn-primary" onClick={addStudent}>
+          {editingId ? "Update Student" : "Add Student"}
+        </button>
+
+      </div>
+
+      <div className="d-flex justify-content-between mb-3">
+
+        <input
+          className="form-control w-50"
+          placeholder="Search student"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <button
+          className="btn btn-success"
+          onClick={downloadExcel}
+        >
+          Download Excel
+        </button>
+
+      </div>
+
+      <table className="table table-bordered table-striped">
+
+        <thead className="table-dark">
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Age</th>
+            <th width="150">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {filteredStudents.map((student) => (
+
+            <tr key={student.id}>
+
+              <td>{student.name}</td>
+              <td>{student.email}</td>
+              <td>{student.age}</td>
+
+              <td>
+
+                <button
+                  className="btn btn-warning btn-sm me-2"
+                  onClick={() => editStudent(student)}
+                >
+                  Edit
+                </button>
+
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => deleteStudent(student.id)}
+                >
+                  Delete
+                </button>
+
+              </td>
+
+            </tr>
+
+          ))}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  );
+}
+
+export default App;
